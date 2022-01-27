@@ -186,7 +186,7 @@ fn parse_content<RS: Read + Seek>(mut zip: ZipArchive<RS>) -> Result<Content, Od
         Ok(f) => {
             let mut r = XmlReader::from_reader(BufReader::new(f));
             r.check_end_names(false)
-                .trim_text(true)
+                .trim_text(false)
                 .check_comments(false)
                 .expand_empty_elements(true);
             r
@@ -354,6 +354,7 @@ fn read_row(
             }
             Ok(Event::End(ref e)) if e.name() == b"table:table-row" => break,
             Err(e) => return Err(OdsError::Xml(e)),
+            Ok(Event::Text(ref e)) if e.is_empty() => continue,
             Ok(e) => {
                 return Err(OdsError::Mismatch {
                     expected: "table-cell",
